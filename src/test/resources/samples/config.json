@@ -1,0 +1,34 @@
+{
+    "currencyCode": "GTQ",
+    "documentType": "FACT",
+    "generator": {
+      "subscriptionType": "GEN",
+      "taxId": "1000000000K",
+      "code": "1",
+      "name": "Usuario de Pruebas IT",
+      "email": "test@mailnator.com",
+      "country": "",
+      "state": "",
+      "address": "Ciudad 00-00 Ciudad Zona: 0, Guatemala, Guatemala",
+      "postalCode": "",
+      "companyName": "",
+      "phrases": [
+        {
+          "type": "1",
+          "scenario": "1"
+        },
+        {
+          "type": "1",
+          "scenario": "2"
+        }	  
+      ]
+    },
+    "apiInformation":  {
+      "user": "DEMO_FEL",
+      "wsToken": "E5DC9FFBA5F3653E27DF2FC1DCAC824D",
+      "signatureAlias": "DEMO_FEL",
+      "signatureToken": "9c748d9bcf1455655b9e9a5c34525570",
+      "salt": "PVD"
+    }
+}
+  
