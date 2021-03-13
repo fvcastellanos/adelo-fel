@@ -13,7 +13,8 @@ public class InvoiceServiceIT {
     @Test
     void foo() {
 
-        invoiceService.generateElectronicInvoice(1, "12345678", "recipient@mailnator.com");
+        invoiceService.generateElectronicInvoice(1, "12345678",
+                "Juan Penas", "recipient@mailnator.com");
     }
     
 }

@@ -18,13 +18,14 @@ public class FelRequestBuilder {
 
     public static DocumentoFel buildInvoiceDocument(List<OrderDetail> orderDetails, 
                                               FelInformation felInformation, 
-                                              String recipientTaxId, 
+                                              String recipientTaxId,
+                                              String recipientName,
                                               String recipientEmail) {
 
         DocumentoFel document = new DocumentoFel();
         document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
         document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
-        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientEmail));
+        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientEmail, recipientName));
 
         List<Items> items = FelRequestBuilder.items(orderDetails);
         items.forEach(document::setItems);
@@ -135,16 +136,16 @@ public class FelRequestBuilder {
         return list;
     }
 
-    public static DatosReceptor buildDatosReceptor(String taxId, String email) {
+    public static DatosReceptor buildDatosReceptor(String taxId, String name, String email) {
 
         DatosReceptor datosReceptor = new DatosReceptor();
         datosReceptor.setIDReceptor(taxId);
         datosReceptor.setCorreoReceptor(email);
-        datosReceptor.setCodigoPostal("");
-        datosReceptor.setDepartamento("");
-        datosReceptor.setDireccion("");
-        datosReceptor.setMunicipio("");
-        datosReceptor.setNombreReceptor("");
+        datosReceptor.setCodigoPostal("0000");
+        datosReceptor.setDepartamento("Ciudad");
+        datosReceptor.setDireccion("Ciudad");
+        datosReceptor.setMunicipio("Ciudad");
+        datosReceptor.setNombreReceptor(name);
         datosReceptor.setPais("GT");
         datosReceptor.setTipoEspecial("");
 
