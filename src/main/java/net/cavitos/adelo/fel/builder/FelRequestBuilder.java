@@ -122,7 +122,7 @@ public class FelRequestBuilder {
         
         GeneratorInformation generator = felInformation.getGenerator();
 
-        List<Frases> list = new ArrayList();
+        List<Frases> list = new ArrayList<>();
 
         generator.getPhrases().forEach(p -> {
 

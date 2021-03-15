@@ -2,11 +2,18 @@ package net.cavitos.adelo.fel.controller;
 
 import io.vavr.control.Either;
 import net.cavitos.adelo.fel.domain.fel.InvoiceInformation;
+import net.cavitos.adelo.fel.domain.views.ErrorResponse;
+import net.cavitos.adelo.fel.domain.views.InvoiceGenerationRequest;
+import net.cavitos.adelo.fel.domain.views.InvoiceGenerationResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import net.cavitos.adelo.fel.service.InvoiceService;
 
@@ -20,20 +27,33 @@ public class InvoiceController {
     @Autowired
     private InvoiceService invoiceService;
     
-    @GetMapping("/invoices")
-    public String generateInvoice() {
+    @PostMapping("/invoices")
+    public ResponseEntity generateInvoice(@RequestBody InvoiceGenerationRequest invoiceGenerationRequest) {
 
         LOGGER.info("got invoice generation request");
 
-        Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(1, "123123",
-                "Juan Penas", "adelo@mailnator.com");
+        // todo: add validator
+
+        Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(invoiceGenerationRequest.getOrderId(),
+            invoiceGenerationRequest.getTaxId(), invoiceGenerationRequest.getName(), invoiceGenerationRequest.getEmail());
 
         if (result.isLeft()) {
 
             LOGGER.error("errors: {}", result.getLeft());
-            return "ERROR";
+
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(result.getLeft());
+            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
-        return "OK";
+        InvoiceInformation information = result.get();
+        InvoiceGenerationResponse response = new InvoiceGenerationResponse();
+
+        response.setDate(information.getDate());
+        response.setDescription(information.getDescription());
+        response.setInformation(information.getInformation());
+        response.setOrigin(information.getOrigin());
+
+        return new ResponseEntity<InvoiceGenerationResponse>(response, HttpStatus.OK);
     }
 }
