@@ -49,7 +49,7 @@ public class OrderRepository {
 
             resultSet = preparedStatement.executeQuery();
 
-            List<OrderDetail> orderDetails = new ArrayList<OrderDetail>();
+            List<OrderDetail> orderDetails = new ArrayList<>();
             while (resultSet.next()) {
 
                 orderDetails.add(buildOrderDetail(resultSet));

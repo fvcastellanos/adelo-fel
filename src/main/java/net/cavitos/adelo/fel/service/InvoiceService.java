@@ -1,44 +1,46 @@
 package net.cavitos.adelo.fel.service;
 
-import com.fel.firma.emisor.FirmaEmisor;
 import com.fel.firma.emisor.RespuestaServicioFirma;
-import com.fel.validaciones.documento.*;
-
-import net.cavitos.adelo.fel.domain.fel.ApiInformation;
-import net.cavitos.adelo.fel.domain.fel.FelInformation;
-import net.cavitos.adelo.fel.domain.fel.GeneratorInformation;
-import net.cavitos.adelo.fel.domain.fel.InvoiceInformation;
-import net.cavitos.adelo.fel.domain.model.OrderDetail;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.fel.validaciones.documento.DescripcionErrores;
+import com.fel.validaciones.documento.DocumentoFel;
+import com.fel.validaciones.documento.GenerarXml;
+import com.fel.validaciones.documento.Respuesta;
+import com.fel.validaciones.documento.RespuestaServicioFel;
 import io.vavr.control.Either;
 import net.cavitos.adelo.fel.builder.FelRequestBuilder;
+import net.cavitos.adelo.fel.client.InFileClient;
+import net.cavitos.adelo.fel.domain.fel.ApiInformation;
+import net.cavitos.adelo.fel.domain.fel.FelInformation;
+import net.cavitos.adelo.fel.domain.fel.InvoiceInformation;
+import net.cavitos.adelo.fel.domain.model.OrderDetail;
 import net.cavitos.adelo.fel.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class InvoiceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InvoiceService.class);
 
+    private final InFileClient inFileClient;
     private final ConfigurationService configurationService;
     private final OrderRepository orderRepository;
 
-    public InvoiceService(ConfigurationService configurationService, OrderRepository orderRepository) {
+    public InvoiceService(ConfigurationService configurationService, OrderRepository orderRepository, InFileClient inFileClient) {
 
+        this.inFileClient = inFileClient;
         this.configurationService = configurationService;
         this.orderRepository = orderRepository;
     }
     
-    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(long orderId,
-                                                             String recipientTaxId,
-                                                             String recipientName,
-                                                             String recipientEmail) {
+    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(final long orderId,
+                                                             final String recipientTaxId,
+                                                             final String recipientName,
+                                                             final String recipientEmail) {
 
         LOGGER.info("generating invoice for orderId: {}", orderId);
 
@@ -64,7 +66,7 @@ public class InvoiceService {
 
         return buildXmlDocument(document)
                 .flatMap(xml -> signXmlDocument(xml, configuration.getApiInformation()))
-                .flatMap(file -> generateInvoice(file, configuration));
+                .flatMap(file -> generateInvoice(file, recipientEmail, configuration));
     }
 
     // --------------------------------------------------------------------------------------------------------------
@@ -97,8 +99,7 @@ public class InvoiceService {
         try {
 
             LOGGER.info("signing xml document");
-            FirmaEmisor firmaEmisor = new FirmaEmisor();
-            RespuestaServicioFirma signResponse = firmaEmisor.Firmar(xml, apiInformation.getSignatureAlias(), apiInformation.getSignatureToken());
+            RespuestaServicioFirma signResponse = inFileClient.signDocument(xml, apiInformation.getSignatureAlias(), apiInformation.getSignatureToken());
 
             if (signResponse.isResultado()) {
 
@@ -116,25 +117,24 @@ public class InvoiceService {
         }
     }
 
-    private Either<List<String>, InvoiceInformation> generateInvoice(String file, FelInformation felInformation) {
-
+    private Either<List<String>, InvoiceInformation> generateInvoice(String signedDocument,
+                                                                     String recipientEmail,
+                                                                     FelInformation felInformation) {
         try {
 
-            GeneratorInformation generator = felInformation.getGenerator();
-
-            ConexionServicioFel conexionServicioFel = buildConnection(felInformation);
-
-            ServicioFel service = new ServicioFel();
-            RespuestaServicioFel respuestaServicioFel = service.Certificar(conexionServicioFel, file,
-                    generator.getTaxId(), "N/A", "CERTIFICACION");
+            RespuestaServicioFel respuestaServicioFel = inFileClient.certificateDocument(signedDocument, recipientEmail, felInformation);
 
             if (respuestaServicioFel.getResultado()) {
+
 
                 InvoiceInformation invoiceInformation = InvoiceInformation.builder()
                         .origin(respuestaServicioFel.getOrigen())
                         .description(respuestaServicioFel.getDescripcion())
                         .information(respuestaServicioFel.getInfo())
                         .date(respuestaServicioFel.getFecha())
+                        .uuid(respuestaServicioFel.getUuid())
+                        .correlative(respuestaServicioFel.getSerie())
+                        .number(respuestaServicioFel.getNumero())
                         .build();
 
                 return Either.right(invoiceInformation);
@@ -153,20 +153,5 @@ public class InvoiceService {
             LOGGER.error("can't generate invoice - ", exception);
             return Either.left(Collections.singletonList("can't generate invoice"));
         }
-    }
-
-    private ConexionServicioFel buildConnection(FelInformation felInformation) {
-
-        ApiInformation apiInformation = felInformation.getApiInformation();
-
-        ConexionServicioFel conexionServicioFel = new ConexionServicioFel();
-        conexionServicioFel.setUrl("");
-        conexionServicioFel.setMetodo("POST");
-        conexionServicioFel.setContent_type("application/json");
-        conexionServicioFel.setUsuario(apiInformation.getUser());
-        conexionServicioFel.setLlave(apiInformation.getWebServiceToken());
-        conexionServicioFel.setIdentificador(apiInformation.getSalt() + ":" + UUID.randomUUID().toString());
-
-        return conexionServicioFel;
     }
 }

@@ -43,7 +43,7 @@ public class InvoiceController {
 
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setErrors(result.getLeft());
-            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
         InvoiceInformation information = result.get();
@@ -53,7 +53,10 @@ public class InvoiceController {
         response.setDescription(information.getDescription());
         response.setInformation(information.getInformation());
         response.setOrigin(information.getOrigin());
+        response.setUuid(information.getUuid());
+        response.setCorrelative(information.getCorrelative());
+        response.setNumber(information.getNumber());
 
-        return new ResponseEntity<InvoiceGenerationResponse>(response, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

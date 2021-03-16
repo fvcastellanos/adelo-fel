@@ -2,6 +2,7 @@ package net.cavitos.adelo.fel.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.cavitos.adelo.fel.client.InFileClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +22,10 @@ public class ServiceConfiguration {
     }    
 
     @Bean
-    public InvoiceService invoiceService(ConfigurationService configurationService, OrderRepository orderRepository) {
+    public InvoiceService invoiceService(ConfigurationService configurationService,
+                                         OrderRepository orderRepository,
+                                         InFileClient inFileClient) {
 
-        return new InvoiceService(configurationService, orderRepository);
+        return new InvoiceService(configurationService, orderRepository, inFileClient);
     }
 }

@@ -15,4 +15,7 @@ public class InvoiceGenerationResponse {
     private String origin;
     private String information;
     private String description;
+    private String uuid;
+    private String correlative;
+    private String number;
 }

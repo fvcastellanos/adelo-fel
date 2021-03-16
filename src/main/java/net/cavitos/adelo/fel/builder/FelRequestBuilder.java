@@ -25,7 +25,7 @@ public class FelRequestBuilder {
         DocumentoFel document = new DocumentoFel();
         document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
         document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
-        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientEmail, recipientName));
+        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientName, recipientEmail));
 
         List<Items> items = FelRequestBuilder.items(orderDetails);
         items.forEach(document::setItems);
@@ -163,12 +163,12 @@ public class FelRequestBuilder {
 
     private static ImpuestosDetalle buildItemTaxDetail(double itemTotal, double quantity) {
 
+        double valueWithoutTax = itemTotal / 1.12;
         ImpuestosDetalle detalle = new ImpuestosDetalle();
         detalle.setCodigoUnidadGravable(1);
-        detalle.setMontoGravable(itemTotal / 1.12);
-        detalle.setMontoImpuesto(itemTotal - detalle.getMontoGravable());
+        detalle.setMontoGravable(valueWithoutTax);
+        detalle.setMontoImpuesto(itemTotal - valueWithoutTax);
         detalle.setNombreCorto(TAX_NAME);
-        detalle.setCantidadUnidadesGravables(quantity);
 
         return detalle;
     }

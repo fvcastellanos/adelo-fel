@@ -28,8 +28,8 @@ public class ConfigurationServiceTest {
     @Test
     void testLoadConfigFile() {
 
-        Optional<FelInformation> configuration = configurationService.loadConfiguration();
-        Assertions.assertThat(configuration)
+        Optional<FelInformation> configurationHolder = configurationService.loadConfiguration();
+        Assertions.assertThat(configurationHolder)
             .isNotEmpty()
             .hasValue(buildFelInformation());
     }
@@ -41,6 +41,8 @@ public class ConfigurationServiceTest {
         FelInformation info = new FelInformation();
         info.setCurrencyCode("GTQ");
         info.setDocumentType("FACT");
+        info.setExportation("");
+        info.setPerson("");
         info.setGenerator(buildGeneratorInformation());
         info.setApiInformation(buildApiInformation());
 
@@ -51,15 +53,16 @@ public class ConfigurationServiceTest {
 
         GeneratorInformation generator = new GeneratorInformation();
         generator.setSubscriptionType("GEN");
-        generator.setTaxId("1000000000K");
+        generator.setTaxId("11600089K");
         generator.setCode(1);
-        generator.setName("Usuario de Pruebas IT");
+        generator.setName("DINAMICA_DEMO");
         generator.setEmail("adeloFel@mailnator.com");
-        generator.setCountry("");
-        generator.setState("");
-        generator.setAddress("Ciudad 00-00 Ciudad Zona: 0, Guatemala, Guatemala");
-        generator.setPostalCode("");
-        generator.setCompanyName("");
+        generator.setCountry("GT");
+        generator.setState("Guatemala");
+        generator.setCity("Guatemala");
+        generator.setAddress("CIUDAD Zona: , GUATEMALA, GUATEMALA");
+        generator.setPostalCode("0100");
+        generator.setCompanyName("DINAMICA_DEMO");
         generator.setPhrases(buildPhrases());
 
         return generator;
@@ -89,10 +92,10 @@ public class ConfigurationServiceTest {
         ApiInformation api = new ApiInformation();
 
         api.setSalt("PVD");
-        api.setUser("DEMO_FEL");
-        api.setWebServiceToken("E5DC9FFBA5F3653E27DF2FC1DCAC824D");
-        api.setSignatureAlias("DEMO_FEL");
-        api.setSignatureToken("9c748d9bcf1455655b9e9a5c34525570");
+        api.setUser("DINAMICA_DEMO");
+        api.setWebServiceToken("43F9B4F90CEEBC93DC9F2BBF7C22536A");
+        api.setSignatureAlias("DINAMICA_DEMO");
+        api.setSignatureToken("6dccb2d50879382aeaf6ee218adbc603");
 
         return api;
     }
