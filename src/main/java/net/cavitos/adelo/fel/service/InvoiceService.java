@@ -11,6 +11,7 @@ import net.cavitos.adelo.fel.builder.FelRequestBuilder;
 import net.cavitos.adelo.fel.client.InFileClient;
 import net.cavitos.adelo.fel.domain.fel.ApiInformation;
 import net.cavitos.adelo.fel.domain.fel.FelInformation;
+import net.cavitos.adelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.adelo.fel.domain.fel.InvoiceInformation;
 import net.cavitos.adelo.fel.domain.model.OrderDetail;
 import net.cavitos.adelo.fel.repository.OrderRepository;
@@ -37,11 +38,9 @@ public class InvoiceService {
         this.orderRepository = orderRepository;
     }
     
-    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(final long orderId,
-                                                             final String recipientTaxId,
-                                                             final String recipientName,
-                                                             final String recipientEmail) {
+    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(InvoiceGeneration invoiceGeneration) {
 
+        final long orderId = invoiceGeneration.getOrderId();
         LOGGER.info("generating invoice for orderId: {}", orderId);
 
         Optional<FelInformation> configurationHolder = configurationService.loadConfiguration();
@@ -52,7 +51,8 @@ public class InvoiceService {
             return Either.left(Collections.singletonList("can't load configuration file"));
         }
 
-        List<OrderDetail> orderDetails = orderRepository.getOrderDetails(orderId);
+//        List<OrderDetail> orderDetails = orderRepository.getOrderDetails(orderId);
+        List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
 
         if (orderDetails.isEmpty()) {
 
@@ -61,12 +61,12 @@ public class InvoiceService {
         }
 
         FelInformation configuration = configurationHolder.get();
-        DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(orderDetails, configuration, recipientTaxId,
-                recipientName, recipientEmail);
+        DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(orderDetails, configuration, invoiceGeneration.getTaxId(),
+                invoiceGeneration.getName(), invoiceGeneration.getEmail());
 
         return buildXmlDocument(document)
                 .flatMap(xml -> signXmlDocument(xml, configuration.getApiInformation()))
-                .flatMap(file -> generateInvoice(file, recipientEmail, configuration));
+                .flatMap(file -> generateInvoice(file, invoiceGeneration.getEmail(), configuration));
     }
 
     // --------------------------------------------------------------------------------------------------------------
@@ -125,7 +125,6 @@ public class InvoiceService {
             RespuestaServicioFel respuestaServicioFel = inFileClient.certificateDocument(signedDocument, recipientEmail, felInformation);
 
             if (respuestaServicioFel.getResultado()) {
-
 
                 InvoiceInformation invoiceInformation = InvoiceInformation.builder()
                         .origin(respuestaServicioFel.getOrigen())

@@ -84,7 +84,7 @@ public class FelRequestBuilder {
             item.setCantidad(detail.getQuantity());
             item.setDescripcion(detail.getItemText());
             item.setDescuento(detail.getDiscountAmount());
-            item.setPrecio(detail.getUnitPrice());
+            item.setPrecio(detail.getUnitPrice() * detail.getQuantity());
             item.setPrecioUnitario(detail.getUnitPrice());
             item.setUnidadMedida("UND");
             item.setTotal(detail.getQuantity() * detail.getUnitPrice());

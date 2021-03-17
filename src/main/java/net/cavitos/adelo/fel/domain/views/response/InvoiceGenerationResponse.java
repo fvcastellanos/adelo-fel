@@ -1,4 +1,4 @@
-package net.cavitos.adelo.fel.domain.views;
+package net.cavitos.adelo.fel.domain.views.response;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
