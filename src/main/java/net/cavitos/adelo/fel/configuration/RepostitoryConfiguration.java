@@ -10,7 +10,7 @@ import net.cavitos.adelo.fel.repository.OrderRepository;
 public class RepostitoryConfiguration {
     
     @Bean
-    public OrderRepository orderRepository(@Value("${adelo.fel.jdbc.connection.string}") String connectionString) {
+    public OrderRepository orderRepository(@Value("${adelo.fel.jdbc.connection.string:nothing}") String connectionString) {
 
         return new OrderRepository(connectionString);
     }
