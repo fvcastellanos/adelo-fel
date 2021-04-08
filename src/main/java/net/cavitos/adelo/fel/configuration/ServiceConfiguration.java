@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import net.cavitos.adelo.fel.repository.OrderRepository;
 import net.cavitos.adelo.fel.service.ConfigurationService;
 import net.cavitos.adelo.fel.service.InvoiceService;
 
@@ -22,10 +21,9 @@ public class ServiceConfiguration {
     }    
 
     @Bean
-    public InvoiceService invoiceService(ConfigurationService configurationService,
-                                         OrderRepository orderRepository,
+    public InvoiceService invoiceService(ConfigurationService configurationService,                                         
                                          InFileClient inFileClient) {
 
-        return new InvoiceService(configurationService, orderRepository, inFileClient);
+        return new InvoiceService(configurationService, inFileClient);
     }
 }
