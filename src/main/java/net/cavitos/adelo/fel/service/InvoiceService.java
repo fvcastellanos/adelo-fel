@@ -14,7 +14,6 @@ import net.cavitos.adelo.fel.domain.fel.FelInformation;
 import net.cavitos.adelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.adelo.fel.domain.fel.InvoiceInformation;
 import net.cavitos.adelo.fel.domain.model.OrderDetail;
-import net.cavitos.adelo.fel.repository.OrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +28,11 @@ public class InvoiceService {
 
     private final InFileClient inFileClient;
     private final ConfigurationService configurationService;
-    private final OrderRepository orderRepository;
 
-    public InvoiceService(ConfigurationService configurationService, OrderRepository orderRepository, InFileClient inFileClient) {
+    public InvoiceService(ConfigurationService configurationService, InFileClient inFileClient) {
 
         this.inFileClient = inFileClient;
         this.configurationService = configurationService;
-        this.orderRepository = orderRepository;
     }
     
     public Either<List<String>, InvoiceInformation> generateElectronicInvoice(InvoiceGeneration invoiceGeneration) {
@@ -51,7 +48,6 @@ public class InvoiceService {
             return Either.left(Collections.singletonList("can't load configuration file"));
         }
 
-//        List<OrderDetail> orderDetails = orderRepository.getOrderDetails(orderId);
         List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
 
         if (orderDetails.isEmpty()) {
