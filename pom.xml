@@ -27,17 +27,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <dependency>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>3.0.1</version>
-    </dependency>
 
     <dependency>
         <groupId>io.vavr</groupId>
         <artifactId>vavr</artifactId>
         <version>0.10.3</version>
-      </dependency>
+    </dependency>
 
     <dependency>
         <groupId>com.google.code.gson</groupId>
@@ -91,6 +86,29 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                         <artifactId>lombok</artifactId>
                     </exclude>
                 </excludes>
+            </configuration>
+        </plugin>
+        <plugin>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
+            <version>4.0.0</version>
+            <executions>
+                <execution>
+                    <id>get-the-git-infos</id>
+                    <goals>
+                        <goal>revision</goal>
+                    </goals>
+                    <phase>initialize</phase>
+                </execution>
+            </executions>
+            <configuration>
+                <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                <includeOnlyProperties>
+                    <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
+                    <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
+                </includeOnlyProperties>
+                <commitIdGenerationMode>full</commitIdGenerationMode>
             </configuration>
         </plugin>
     </plugins>
