@@ -8,10 +8,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version>2.4.3</version>
     <relativePath/> <!-- lookup parent from repository -->
 </parent>
-<groupId>net.cavitos.adelo.fel</groupId>
-<artifactId>adelo-fel</artifactId>
+<groupId>net.cavitos.aldelo.fel</groupId>
+<artifactId>aldelo-fel</artifactId>
 <version>0.0.1-SNAPSHOT</version>
-<name>adelo-fel</name>
+<name>aldelo-fel</name>
 <description>Adelo POS FEL Integration</description>
 <properties>
     <java.version>1.8</java.version>
@@ -52,6 +52,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <artifactId>lombok</artifactId>
         <optional>true</optional>
     </dependency>
+
+    <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.13</version>
+    </dependency>
+
 
     <dependency>
         <groupId>org.springframework.boot</groupId>

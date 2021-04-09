@@ -14,7 +14,7 @@ import net.cavitos.aldelo.fel.service.InvoiceService;
 public class ServiceConfiguration {
 
     @Bean
-    public ConfigurationService configurationService(@Value("${adelo.fel.configuration.file}") String configurationFile, 
+    public ConfigurationService configurationService(@Value("${aldelo.fel.configuration.file}") String configurationFile,
                                                      ObjectMapper objectMapper) {
 
         return new ConfigurationService(configurationFile, objectMapper);
