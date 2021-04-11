@@ -8,10 +8,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <version>2.4.3</version>
     <relativePath/> <!-- lookup parent from repository -->
 </parent>
-<groupId>net.cavitos.adelo.fel</groupId>
-<artifactId>adelo-fel</artifactId>
+<groupId>net.cavitos.aldelo.fel</groupId>
+<artifactId>aldelo-fel</artifactId>
 <version>0.0.1-SNAPSHOT</version>
-<name>adelo-fel</name>
+<name>aldelo-fel</name>
 <description>Adelo POS FEL Integration</description>
 <properties>
     <java.version>1.8</java.version>
@@ -32,7 +32,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <groupId>io.vavr</groupId>
         <artifactId>vavr</artifactId>
         <version>0.10.3</version>
-      </dependency>
+    </dependency>
 
     <dependency>
         <groupId>com.google.code.gson</groupId>
@@ -54,6 +54,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     </dependency>
 
     <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.13</version>
+    </dependency>
+
+
+    <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-test</artifactId>
         <scope>test</scope>
@@ -72,6 +79,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>build-info</goal>
+                    </goals>
+                </execution>
+            </executions>
             <configuration>
                 <excludes>
                     <exclude>
@@ -79,6 +93,29 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                         <artifactId>lombok</artifactId>
                     </exclude>
                 </excludes>
+            </configuration>
+        </plugin>
+        <plugin>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
+            <version>4.0.0</version>
+            <executions>
+                <execution>
+                    <id>get-the-git-infos</id>
+                    <goals>
+                        <goal>revision</goal>
+                    </goals>
+                    <phase>initialize</phase>
+                </execution>
+            </executions>
+            <configuration>
+                <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                <includeOnlyProperties>
+                    <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
+                    <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
+                </includeOnlyProperties>
+                <commitIdGenerationMode>full</commitIdGenerationMode>
             </configuration>
         </plugin>
     </plugins>
