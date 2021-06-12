@@ -78,16 +78,17 @@ public class FelRequestBuilder {
 
             OrderDetail detail = orderDetails.get(line);
             Items item = new Items();
+            double price = detail.getUnitPrice() * detail.getQuantity();
 
             item.setNumeroLinea(line + 1);
             item.setBienOServicio(ITEM_TYPE);
             item.setCantidad(detail.getQuantity());
             item.setDescripcion(detail.getItemText());
             item.setDescuento(detail.getDiscountAmount());
-            item.setPrecio(detail.getUnitPrice() * detail.getQuantity());
+            item.setPrecio(price);
             item.setPrecioUnitario(detail.getUnitPrice());
             item.setUnidadMedida("UND");
-            item.setTotal(detail.getQuantity() * detail.getUnitPrice());
+            item.setTotal(price - detail.getDiscountAmount());
 
             item.setImpuestos_detalle(buildItemTaxDetail(item.getTotal(), item.getCantidad()));
 
