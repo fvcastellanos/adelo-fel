@@ -21,7 +21,7 @@ public class ConfigurationServiceTest {
 
     @BeforeEach
     void setup() {
-        String configFile = System.getenv("ADELO_FEL_CONFIGURATION_FILE");
+        String configFile = System.getenv("ALDELO_FEL_CONFIGURATION_FILE");
         configurationService = new ConfigurationService(configFile, new ObjectMapper());
     }
 
