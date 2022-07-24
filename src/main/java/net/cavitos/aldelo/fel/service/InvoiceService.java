@@ -41,12 +41,12 @@ public class InvoiceService {
         this.configurationService = configurationService;
     }
     
-    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(InvoiceGeneration invoiceGeneration) {
+    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(final InvoiceGeneration invoiceGeneration) {
 
         final long orderId = invoiceGeneration.getOrderId();
         LOGGER.info("generating invoice for orderId: {}", orderId);
 
-        Optional<FelInformation> configurationHolder = configurationService.loadConfiguration();
+        final Optional<FelInformation> configurationHolder = configurationService.loadConfiguration();
 
         if (!configurationHolder.isPresent()) {
 
@@ -54,7 +54,7 @@ public class InvoiceService {
             return Either.left(Collections.singletonList("can't load configuration file"));
         }
 
-        List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
+        final List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
 
         if (orderDetails.isEmpty()) {
 
@@ -62,9 +62,9 @@ public class InvoiceService {
             return Either.left(Collections.singletonList("no order details found for order id: " + orderId));
         }
 
-        FelInformation configuration = configurationHolder.get();
-        DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(orderDetails, configuration, invoiceGeneration.getTaxId(),
-                invoiceGeneration.getName(), invoiceGeneration.getEmail());
+        final FelInformation configuration = configurationHolder.get();
+        final DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(orderDetails, configuration, invoiceGeneration.getTaxId(),
+                invoiceGeneration.getName(), invoiceGeneration.getEmail(), invoiceGeneration.getTipAmount());
 
         return buildXmlDocument(document)
                 .flatMap(xml -> signXmlDocument(xml, configuration.getApiInformation()))

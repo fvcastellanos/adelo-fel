@@ -5,6 +5,7 @@ import net.cavitos.aldelo.fel.domain.fel.FelInformation;
 import net.cavitos.aldelo.fel.domain.fel.GeneratorInformation;
 import net.cavitos.aldelo.fel.domain.model.OrderDetail;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -12,29 +13,33 @@ public class FelRequestBuilder {
 
     private static final String ITEM_TYPE = "B";
     private static final String TAX_NAME = "IVA";
+    private static final String TIP_ENTRY_NAME = "propina";
+    private static final String TOTAL_INVOICE_PLUS_TIP_ENTRY_NAME = "totalmasprop";
 
     private FelRequestBuilder() {
     }
 
-    public static DocumentoFel buildInvoiceDocument(List<OrderDetail> orderDetails, 
-                                              FelInformation felInformation, 
-                                              String recipientTaxId,
-                                              String recipientName,
-                                              String recipientEmail) {
+    public static DocumentoFel buildInvoiceDocument(final List<OrderDetail> orderDetails,
+                                                    final FelInformation felInformation,
+                                                    final String recipientTaxId,
+                                                    final String recipientName,
+                                                    final String recipientEmail,
+                                                    final double tipAmount) {
 
-        DocumentoFel document = new DocumentoFel();
+        final DocumentoFel document = new DocumentoFel();
         document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
         document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
         document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientName, recipientEmail));
 
-        List<Items> items = FelRequestBuilder.items(orderDetails);
+        final List<Items> items = FelRequestBuilder.items(orderDetails);
         items.forEach(document::setItems);
 
-        List<Frases> phrases = FelRequestBuilder.buildPhrases(felInformation);
+        final List<Frases> phrases = FelRequestBuilder.buildPhrases(felInformation);
         phrases.forEach(document::setFrases);
 
         document.setImpuestos_resumen(FelRequestBuilder.buildTotalTaxes(orderDetails));
         document.setTotales(FelRequestBuilder.buildTotal(orderDetails));
+        document.setAdenda(buildAdendaPropina(tipAmount, orderDetails));
 
         return document;
     }
@@ -150,6 +155,17 @@ public class FelRequestBuilder {
         datosReceptor.setTipoEspecial("");
 
         return datosReceptor;
+    }
+
+    public static Adendas buildAdendaPropina(final double tipAmount, final List<OrderDetail> orderDetails) {
+
+        final double totalPlusTip = getTotal(orderDetails) + tipAmount;
+
+        final Adendas adendas = new Adendas();
+        adendas.setAdenda(TIP_ENTRY_NAME, String.format("%.2f", tipAmount));
+        adendas.setAdenda(TOTAL_INVOICE_PLUS_TIP_ENTRY_NAME, String.format("%.2f", totalPlusTip));
+
+        return adendas;
     }
 
     // -------------------------------------------------------------------------------------------------------------------
