@@ -63,8 +63,7 @@ public class InvoiceService {
         }
 
         final FelInformation configuration = configurationHolder.get();
-        final DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(orderDetails, configuration, invoiceGeneration.getTaxId(),
-                invoiceGeneration.getName(), invoiceGeneration.getEmail(), invoiceGeneration.getTipAmount());
+        final DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(invoiceGeneration, configuration);
 
         return buildXmlDocument(document)
                 .flatMap(xml -> signXmlDocument(xml, configuration.getApiInformation()))
