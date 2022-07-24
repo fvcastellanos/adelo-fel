@@ -26,6 +26,12 @@ public class InvoiceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InvoiceService.class);
 
+    private static final String OLD_XSD = "http://www.sat.gob.gt/dte/fel/0.1.0";
+    private static final String NEW_XSD = "http://www.sat.gob.gt/dte/fel/0.2.0";
+
+    private static final String OLD_XSD_VERSION = "Version=\"0.4\"";
+    private static final String NEW_XSD_VERSION = "Version=\"0.1\"";
+
     private final InFileClient inFileClient;
     private final ConfigurationService configurationService;
 
@@ -76,10 +82,16 @@ public class InvoiceService {
             GenerarXml xml = new GenerarXml();
             Respuesta response = xml.ToXml(document);
 
+            // Replace hard coded xsd version since Infile has provided outdated library that doesn't comply against
+            // SAT specifications for DTE xml document
+            String updatedXml = response.getXml()
+                    .replaceAll(OLD_XSD, NEW_XSD)
+                    .replaceAll(OLD_XSD_VERSION, NEW_XSD_VERSION);
+
             if (response.getResultado()) {
 
                 LOGGER.info("xml document generated");
-                return Either.right(response.getXml());
+                return Either.right(updatedXml);
             }
 
             return Either.left(response.getErrores());
@@ -141,7 +153,6 @@ public class InvoiceService {
                     .collect(Collectors.toList());
 
             return Either.left(errors);
-
 
         } catch (Exception exception) {
 
