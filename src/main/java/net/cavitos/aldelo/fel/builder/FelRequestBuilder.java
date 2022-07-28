@@ -119,9 +119,9 @@ public class FelRequestBuilder {
             item.setPrecio(detail.getUnitPrice() * detail.getQuantity());
             item.setPrecioUnitario(detail.getUnitPrice());
             item.setUnidadMedida("UND");
-            item.setTotal(detail.getQuantity() * detail.getUnitPrice());
+            item.setTotal((detail.getQuantity() * detail.getUnitPrice()) - detail.getDiscountAmount());
 
-            item.setImpuestos_detalle(buildItemTaxDetail(item.getTotal(), item.getCantidad()));
+            item.setImpuestos_detalle(buildItemTaxDetail(item.getTotal()));
 
             list.add(item);
         }
@@ -201,14 +201,14 @@ public class FelRequestBuilder {
     private static Double getTotal(List<OrderDetail> orderDetails) {
 
         return orderDetails.stream()
-            .mapToDouble(detail -> detail.getQuantity() * detail.getUnitPrice())
+            .mapToDouble(detail -> (detail.getQuantity() * detail.getUnitPrice()) - detail.getDiscountAmount())
             .sum();
     }
 
-    private static ImpuestosDetalle buildItemTaxDetail(double itemTotal, double quantity) {
+    private static ImpuestosDetalle buildItemTaxDetail(final double itemTotal) {
 
-        double valueWithoutTax = itemTotal / 1.12;
-        ImpuestosDetalle detalle = new ImpuestosDetalle();
+        final double valueWithoutTax = itemTotal / 1.12;
+        final ImpuestosDetalle detalle = new ImpuestosDetalle();
         detalle.setCodigoUnidadGravable(1);
         detalle.setMontoGravable(valueWithoutTax);
         detalle.setMontoImpuesto(itemTotal - valueWithoutTax);

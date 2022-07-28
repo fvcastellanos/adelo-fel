@@ -10,7 +10,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 </parent>
 <groupId>net.cavitos.aldelo.fel</groupId>
 <artifactId>aldelo-fel</artifactId>
-<version>1.0-SNAPSHOT</version>
+<version>1.1-SNAPSHOT</version>
 <name>aldelo-fel</name>
 <description>Adelo POS FEL Integration</description>
 <properties>
