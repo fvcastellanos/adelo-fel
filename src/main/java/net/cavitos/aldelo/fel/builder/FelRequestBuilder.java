@@ -3,8 +3,10 @@ package net.cavitos.aldelo.fel.builder;
 import com.fel.validaciones.documento.*;
 import net.cavitos.aldelo.fel.domain.fel.FelInformation;
 import net.cavitos.aldelo.fel.domain.fel.GeneratorInformation;
+import net.cavitos.aldelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.aldelo.fel.domain.model.OrderDetail;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -12,32 +14,62 @@ public class FelRequestBuilder {
 
     private static final String ITEM_TYPE = "B";
     private static final String TAX_NAME = "IVA";
+    private static final String TIP_ENTRY_NAME = "propina";
+    private static final String TOTAL_INVOICE_PLUS_TIP_ENTRY_NAME = "totalmasprop";
+    private static final String ORDER_ID_ENTRY_NAME = "cnt_int";
 
     private FelRequestBuilder() {
     }
 
-    public static DocumentoFel buildInvoiceDocument(List<OrderDetail> orderDetails, 
-                                              FelInformation felInformation, 
-                                              String recipientTaxId,
-                                              String recipientName,
-                                              String recipientEmail) {
+    public static DocumentoFel buildInvoiceDocument(final InvoiceGeneration invoiceGeneration,
+                                                    final FelInformation felInformation) {
 
-        DocumentoFel document = new DocumentoFel();
+        final List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
+
+        final DocumentoFel document = new DocumentoFel();
         document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
         document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
-        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientName, recipientEmail));
+        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(invoiceGeneration.getTaxId(),
+                invoiceGeneration.getName(), invoiceGeneration.getEmail()));
 
-        List<Items> items = FelRequestBuilder.items(orderDetails);
+        final List<Items> items = FelRequestBuilder.items(orderDetails);
         items.forEach(document::setItems);
 
-        List<Frases> phrases = FelRequestBuilder.buildPhrases(felInformation);
+        final List<Frases> phrases = FelRequestBuilder.buildPhrases(felInformation);
         phrases.forEach(document::setFrases);
 
         document.setImpuestos_resumen(FelRequestBuilder.buildTotalTaxes(orderDetails));
         document.setTotales(FelRequestBuilder.buildTotal(orderDetails));
+        document.setAdenda(buildAdendaPropina(invoiceGeneration.getOrderId(), invoiceGeneration.getTipAmount(), orderDetails));
 
         return document;
+
     }
+
+//    public static DocumentoFel buildInvoiceDocument(final List<OrderDetail> orderDetails,
+//                                                    final FelInformation felInformation,
+//                                                    final String recipientTaxId,
+//                                                    final String recipientName,
+//                                                    final String recipientEmail,
+//                                                    final double tipAmount) {
+//
+//        final DocumentoFel document = new DocumentoFel();
+//        document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
+//        document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
+//        document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(recipientTaxId, recipientName, recipientEmail));
+//
+//        final List<Items> items = FelRequestBuilder.items(orderDetails);
+//        items.forEach(document::setItems);
+//
+//        final List<Frases> phrases = FelRequestBuilder.buildPhrases(felInformation);
+//        phrases.forEach(document::setFrases);
+//
+//        document.setImpuestos_resumen(FelRequestBuilder.buildTotalTaxes(orderDetails));
+//        document.setTotales(FelRequestBuilder.buildTotal(orderDetails));
+//        document.setAdenda(buildAdendaPropina(tipAmount, orderDetails));
+//
+//        return document;
+//    }
 
     public static DatosEmisor buildGeneratorInfo(FelInformation felInformation) {
 
@@ -87,9 +119,9 @@ public class FelRequestBuilder {
             item.setPrecio(detail.getUnitPrice() * detail.getQuantity());
             item.setPrecioUnitario(detail.getUnitPrice());
             item.setUnidadMedida("UND");
-            item.setTotal(detail.getQuantity() * detail.getUnitPrice());
+            item.setTotal((detail.getQuantity() * detail.getUnitPrice()) - detail.getDiscountAmount());
 
-            item.setImpuestos_detalle(buildItemTaxDetail(item.getTotal(), item.getCantidad()));
+            item.setImpuestos_detalle(buildItemTaxDetail(item.getTotal()));
 
             list.add(item);
         }
@@ -152,19 +184,31 @@ public class FelRequestBuilder {
         return datosReceptor;
     }
 
+    public static Adendas buildAdendaPropina(final long orderId, final double tipAmount, final List<OrderDetail> orderDetails) {
+
+        final double totalPlusTip = getTotal(orderDetails) + tipAmount;
+
+        final Adendas adendas = new Adendas();
+        adendas.setAdenda(TIP_ENTRY_NAME, String.format("%.2f", tipAmount));
+        adendas.setAdenda(TOTAL_INVOICE_PLUS_TIP_ENTRY_NAME, String.format("%.2f", totalPlusTip));
+        adendas.setAdenda(ORDER_ID_ENTRY_NAME, Long.toString(orderId));
+
+        return adendas;
+    }
+
     // -------------------------------------------------------------------------------------------------------------------
 
     private static Double getTotal(List<OrderDetail> orderDetails) {
 
         return orderDetails.stream()
-            .mapToDouble(detail -> detail.getQuantity() * detail.getUnitPrice())
+            .mapToDouble(detail -> (detail.getQuantity() * detail.getUnitPrice()) - detail.getDiscountAmount())
             .sum();
     }
 
-    private static ImpuestosDetalle buildItemTaxDetail(double itemTotal, double quantity) {
+    private static ImpuestosDetalle buildItemTaxDetail(final double itemTotal) {
 
-        double valueWithoutTax = itemTotal / 1.12;
-        ImpuestosDetalle detalle = new ImpuestosDetalle();
+        final double valueWithoutTax = itemTotal / 1.12;
+        final ImpuestosDetalle detalle = new ImpuestosDetalle();
         detalle.setCodigoUnidadGravable(1);
         detalle.setMontoGravable(valueWithoutTax);
         detalle.setMontoImpuesto(itemTotal - valueWithoutTax);

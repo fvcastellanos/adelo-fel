@@ -31,14 +31,14 @@ public class InvoiceController {
     private InvoiceService invoiceService;
     
     @PostMapping("/invoices")
-    public ResponseEntity generateInvoice(@RequestBody InvoiceGenerationRequest invoiceGenerationRequest) {
+    public ResponseEntity generateInvoice(@RequestBody final InvoiceGenerationRequest invoiceGenerationRequest) {
 
         LOGGER.info("got invoice generation request");
 
         // todo: add validator
 
-        InvoiceGeneration invoiceGeneration = buildInvoiceGeneration(invoiceGenerationRequest);
-        Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(invoiceGeneration);
+        final InvoiceGeneration invoiceGeneration = buildInvoiceGeneration(invoiceGenerationRequest);
+        final Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(invoiceGeneration);
 
         if (result.isLeft()) {
 
@@ -51,17 +51,17 @@ public class InvoiceController {
 
     // --------------------------------------------------------------------------------------------
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(List<String> errors) {
+    private ResponseEntity<ErrorResponse> buildErrorResponse(final List<String> errors) {
 
-        ErrorResponse errorResponse = new ErrorResponse();
+        final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setErrors(errors);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    private ResponseEntity<InvoiceGenerationResponse> buildSuccessResponse(InvoiceInformation information) {
+    private ResponseEntity<InvoiceGenerationResponse> buildSuccessResponse(final InvoiceInformation information) {
 
-        InvoiceGenerationResponse response = new InvoiceGenerationResponse();
+        final InvoiceGenerationResponse response = new InvoiceGenerationResponse();
 
         response.setDate(information.getDate());
         response.setDescription(information.getDescription());
@@ -74,7 +74,7 @@ public class InvoiceController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    private InvoiceGeneration buildInvoiceGeneration(InvoiceGenerationRequest request) {
+    private InvoiceGeneration buildInvoiceGeneration(final InvoiceGenerationRequest request) {
 
         List<OrderDetail> details = request.getDetails().stream()
                 .map(orderDetail -> OrderDetail.builder()
@@ -90,6 +90,7 @@ public class InvoiceController {
                 .taxId(request.getTaxId())
                 .email(request.getEmail())
                 .name(request.getName())
+                .tipAmount(request.getTipAmount())
                 .details(details)
                 .build();
     }
