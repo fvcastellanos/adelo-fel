@@ -30,7 +30,9 @@ public class FelRequestBuilder {
         document.setDatos_generales(FelRequestBuilder.buildGeneralInformation(felInformation));
         document.setDatos_emisor(FelRequestBuilder.buildGeneratorInfo(felInformation));
         document.setDatos_receptor(FelRequestBuilder.buildDatosReceptor(invoiceGeneration.getTaxId(),
-                invoiceGeneration.getName(), invoiceGeneration.getEmail()));
+                invoiceGeneration.getTaxIdType(),
+                invoiceGeneration.getName(),
+                invoiceGeneration.getEmail()));
 
         final List<Items> items = FelRequestBuilder.items(orderDetails);
         items.forEach(document::setItems);
@@ -168,10 +170,11 @@ public class FelRequestBuilder {
         return list;
     }
 
-    public static DatosReceptor buildDatosReceptor(String taxId, String name, String email) {
+    public static DatosReceptor buildDatosReceptor(String taxId, String taxIdType, String name, String email) {
 
         DatosReceptor datosReceptor = new DatosReceptor();
         datosReceptor.setIDReceptor(taxId);
+        datosReceptor.setTipoEspecial(taxIdType);
         datosReceptor.setCorreoReceptor(email);
         datosReceptor.setCodigoPostal("0000");
         datosReceptor.setDepartamento("Ciudad");
@@ -179,7 +182,6 @@ public class FelRequestBuilder {
         datosReceptor.setMunicipio("Ciudad");
         datosReceptor.setNombreReceptor(name);
         datosReceptor.setPais("GT");
-        datosReceptor.setTipoEspecial("");
 
         return datosReceptor;
     }

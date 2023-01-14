@@ -15,6 +15,7 @@ public class InvoiceGenerationRequest {
 
     private long orderId;
     private String taxId;
+    private String taxIdType;
     private String name;
     private String email;
     private double tipAmount;

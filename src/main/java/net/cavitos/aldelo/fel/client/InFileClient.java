@@ -42,21 +42,21 @@ public class InFileClient {
         this.objectMapper = objectMapper;
     }
 
-    public RespuestaServicioFel certificateDocument(String signedDocument,
-                                                    String recipientEmail,
-                                                    FelInformation felInformation) {
+    public RespuestaServicioFel certificateDocument(final String signedDocument,
+                                                    final String recipientEmail,
+                                                    final FelInformation felInformation) {
 
-        GeneratorInformation generatorInformation = felInformation.getGenerator();
-        ApiInformation apiInformation = felInformation.getApiInformation();
+        final GeneratorInformation generatorInformation = felInformation.getGenerator();
+        final ApiInformation apiInformation = felInformation.getApiInformation();
 
-        RequestServicioFel requestBody = new RequestServicioFel();
+        final RequestServicioFel requestBody = new RequestServicioFel();
         requestBody.setCorreo_copia(recipientEmail);
         requestBody.setNit_emisor(generatorInformation.getTaxId());
         requestBody.setXml_dte(signedDocument);
 
-        String documentId = apiInformation.getSalt() + ":" + UUID.randomUUID().toString();
+        final String documentId = apiInformation.getSalt() + ":" + UUID.randomUUID();
 
-        HttpHeaders httpHeaders = new HttpHeaders();
+        final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set(HttpHeaders.CONTENT_TYPE, "application/json");
         httpHeaders.set(USER_HEADER, apiInformation.getUser());
         httpHeaders.set(KEY_HEADER, apiInformation.getWebServiceToken());
@@ -64,8 +64,8 @@ public class InFileClient {
 
         LOGGER.info("Certificate document: {} against electronic invoice provider", documentId);
 
-        HttpEntity<RequestServicioFel> httpEntity = new HttpEntity<>(requestBody, httpHeaders);
-        ResponseEntity<String> response = postRequest(certificationApiUrl, httpEntity);
+        final HttpEntity<RequestServicioFel> httpEntity = new HttpEntity<>(requestBody, httpHeaders);
+        final ResponseEntity<String> response = postRequest(certificationApiUrl, httpEntity);
 
         if (response.getStatusCode().is2xxSuccessful()) {
 
