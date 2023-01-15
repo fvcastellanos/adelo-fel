@@ -88,6 +88,7 @@ public class InvoiceController {
         return InvoiceGeneration.builder()
                 .orderId(request.getOrderId())
                 .taxId(request.getTaxId())
+                .taxIdType(request.getTaxIdType())
                 .email(request.getEmail())
                 .name(request.getName())
                 .tipAmount(request.getTipAmount())
