@@ -6,7 +6,6 @@ import com.fel.firma.emisor.RespuestaServicioFirma;
 import com.fel.validaciones.documento.RequestServicioFel;
 import com.fel.validaciones.documento.RespuestaServicioFel;
 import net.cavitos.aldelo.fel.domain.fel.ApiInformation;
-import net.cavitos.aldelo.fel.domain.fel.FelInformation;
 import net.cavitos.aldelo.fel.domain.fel.GeneratorInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +43,9 @@ public class InFileClient {
 
     public RespuestaServicioFel certificateDocument(final String signedDocument,
                                                     final String recipientEmail,
-                                                    final FelInformation felInformation) {
-
-        final GeneratorInformation generatorInformation = felInformation.getGenerator();
-        final ApiInformation apiInformation = felInformation.getApiInformation();
+                                                    final GeneratorInformation generatorInformation) {
+        
+        final ApiInformation apiInformation = generatorInformation.getApiInformation();
 
         final RequestServicioFel requestBody = new RequestServicioFel();
         requestBody.setCorreo_copia(recipientEmail);

@@ -1,16 +1,14 @@
 package net.cavitos.aldelo.fel.service;
 
-import io.vavr.control.Either;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceInformation;
+import net.cavitos.aldelo.fel.domain.fel.InvoiceType;
 import net.cavitos.aldelo.fel.domain.model.OrderDetail;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collections;
-import java.util.List;
 
 @SpringBootTest
 public class InvoiceServiceIT {
@@ -21,10 +19,7 @@ public class InvoiceServiceIT {
     @Test
     void testInvoiceCertification() {
 
-        Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(buildInvoiceGeneration());
-
-        Assertions.assertThat(result.isRight())
-                .isTrue();
+        final InvoiceInformation result = invoiceService.generateElectronicInvoice(buildInvoiceGeneration(), InvoiceType.BAR);
     }
 
     // --------------------------------------------------------------------------------------------------------------

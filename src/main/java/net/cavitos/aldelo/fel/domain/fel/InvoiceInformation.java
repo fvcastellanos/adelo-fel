@@ -11,6 +11,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class InvoiceInformation {
 
+    private String type;
     private String uuid;
     private String correlative;
     private String number;

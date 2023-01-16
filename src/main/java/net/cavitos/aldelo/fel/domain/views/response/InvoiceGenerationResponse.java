@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import net.cavitos.aldelo.fel.domain.fel.InvoiceType;
 
 @Getter
 @Setter
@@ -11,6 +12,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class InvoiceGenerationResponse {
 
+    private InvoiceType type;
     private String date;
     private String origin;
     private String information;

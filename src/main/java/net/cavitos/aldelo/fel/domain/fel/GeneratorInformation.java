@@ -23,4 +23,5 @@ public class GeneratorInformation {
     private String postalCode;
     private String companyName;
     private List<Phrase> phrases;    
+    private ApiInformation apiInformation;
 }

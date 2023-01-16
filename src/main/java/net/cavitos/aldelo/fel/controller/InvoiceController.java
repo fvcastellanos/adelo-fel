@@ -1,10 +1,11 @@
 package net.cavitos.aldelo.fel.controller;
 
-import io.vavr.control.Either;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceInformation;
+import net.cavitos.aldelo.fel.domain.fel.InvoiceType;
 import net.cavitos.aldelo.fel.domain.model.OrderDetail;
-import net.cavitos.aldelo.fel.domain.views.response.ErrorResponse;
+import net.cavitos.aldelo.fel.domain.views.response.GenerationResponse;
+import net.cavitos.aldelo.fel.domain.views.request.GenerationRequest;
 import net.cavitos.aldelo.fel.domain.views.request.InvoiceGenerationRequest;
 import net.cavitos.aldelo.fel.domain.views.response.InvoiceGenerationResponse;
 
@@ -19,8 +20,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import net.cavitos.aldelo.fel.service.InvoiceService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 @Controller
 public class InvoiceController {
@@ -31,35 +35,40 @@ public class InvoiceController {
     private InvoiceService invoiceService;
     
     @PostMapping("/invoices")
-    public ResponseEntity generateInvoice(@RequestBody final InvoiceGenerationRequest invoiceGenerationRequest) {
+    public ResponseEntity<GenerationResponse> generateInvoice(@Valid @RequestBody final GenerationRequest generationRequest) {
 
         LOGGER.info("got invoice generation request");
 
-        // todo: add validator
+        final List<InvoiceGenerationResponse> invoiceGenerationResponses = new ArrayList<>();
 
-        final InvoiceGeneration invoiceGeneration = buildInvoiceGeneration(invoiceGenerationRequest);
-        final Either<List<String>, InvoiceInformation> result = invoiceService.generateElectronicInvoice(invoiceGeneration);
+        generationRequest.getInvoices().forEach(request -> {
 
-        if (result.isLeft()) {
+            LOGGER.info("invoice generation for invoice_type={}", request.getType());
 
-            LOGGER.error("errors: {}", result.getLeft());
-            return buildErrorResponse(result.getLeft());
-        }
+            final InvoiceType invoiceType = InvoiceType.of(request.getType());
 
-        return buildSuccessResponse(result.get());
+            final InvoiceGeneration invoiceGeneration = buildInvoiceGeneration(request);
+            final InvoiceInformation invoiceInformation = invoiceService.generateElectronicInvoice(invoiceGeneration, invoiceType);
+
+            LOGGER.info("invoice generate for invoice_type={} and order_id={}", request.getType(), request.getOrderId());
+
+            invoiceGenerationResponses.add(buildInvoiceGenerationResponse(invoiceInformation));
+        });
+
+        return buildGenerationResponse(invoiceGenerationResponses);
     }
 
     // --------------------------------------------------------------------------------------------
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(final List<String> errors) {
+    private ResponseEntity<GenerationResponse> buildGenerationResponse(final List<InvoiceGenerationResponse> responses) {
 
-        final ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setErrors(errors);
+        final GenerationResponse generationResponse = new GenerationResponse();
+        generationResponse.setInvoices(responses);
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<GenerationResponse>(generationResponse, HttpStatus.OK);
     }
 
-    private ResponseEntity<InvoiceGenerationResponse> buildSuccessResponse(final InvoiceInformation information) {
+    private InvoiceGenerationResponse buildInvoiceGenerationResponse(final InvoiceInformation information) {
 
         final InvoiceGenerationResponse response = new InvoiceGenerationResponse();
 
@@ -70,8 +79,9 @@ public class InvoiceController {
         response.setUuid(information.getUuid());
         response.setCorrelative(information.getCorrelative());
         response.setNumber(information.getNumber());
+        response.setType(InvoiceType.of(information.getType()));
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return response;
     }
 
     private InvoiceGeneration buildInvoiceGeneration(final InvoiceGenerationRequest request) {

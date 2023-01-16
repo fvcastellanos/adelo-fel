@@ -7,19 +7,23 @@ import com.fel.validaciones.documento.GenerarXml;
 import com.fel.validaciones.documento.Respuesta;
 import com.fel.validaciones.documento.RespuestaServicioFel;
 import io.vavr.control.Either;
+import net.cavitos.aldelo.fel.builder.BusinessExceptionBuilder;
 import net.cavitos.aldelo.fel.builder.FelRequestBuilder;
 import net.cavitos.aldelo.fel.client.InFileClient;
 import net.cavitos.aldelo.fel.domain.fel.ApiInformation;
 import net.cavitos.aldelo.fel.domain.fel.FelInformation;
+import net.cavitos.aldelo.fel.domain.fel.Generator;
+import net.cavitos.aldelo.fel.domain.fel.GeneratorInformation;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceGeneration;
 import net.cavitos.aldelo.fel.domain.fel.InvoiceInformation;
+import net.cavitos.aldelo.fel.domain.fel.InvoiceType;
 import net.cavitos.aldelo.fel.domain.model.OrderDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class InvoiceService {
@@ -41,33 +45,37 @@ public class InvoiceService {
         this.configurationService = configurationService;
     }
     
-    public Either<List<String>, InvoiceInformation> generateElectronicInvoice(final InvoiceGeneration invoiceGeneration) {
+    public InvoiceInformation generateElectronicInvoice(final InvoiceGeneration invoiceGeneration, final InvoiceType invoiceType) {
 
         final long orderId = invoiceGeneration.getOrderId();
         LOGGER.info("generating invoice for orderId: {}", orderId);
 
-        final Optional<FelInformation> configurationHolder = configurationService.loadConfiguration();
+        final FelInformation configuration = configurationService.loadConfiguration()
+            .orElseThrow(() -> {
 
-        if (!configurationHolder.isPresent()) {
-
-            LOGGER.error("can't load configuration file");
-            return Either.left(Collections.singletonList("can't load configuration file"));
-        }
+                LOGGER.error("can't load configuration file");
+                return BusinessExceptionBuilder.createBusinessException("can't load configuration file");    
+            });
 
         final List<OrderDetail> orderDetails = invoiceGeneration.getDetails();
 
         if (orderDetails.isEmpty()) {
 
             LOGGER.error("no order details found for orderId: {}", orderId);
-            return Either.left(Collections.singletonList("no order details found for order id: " + orderId));
+            throw BusinessExceptionBuilder.createBusinessException("no order details found for order id: %s", orderId);
         }
 
-        final FelInformation configuration = configurationHolder.get();
-        final DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(invoiceGeneration, configuration);
+        final DocumentoFel document = FelRequestBuilder.buildInvoiceDocument(invoiceGeneration, configuration, invoiceType);
 
-        return buildXmlDocument(document)
-                .flatMap(xml -> signXmlDocument(xml, configuration.getApiInformation()))
-                .flatMap(file -> generateInvoice(file, invoiceGeneration.getEmail(), configuration));
+        final GeneratorInformation generatorInformation = getGeneratorInformationByType(configuration, invoiceType);
+
+        final Either<List<String>, InvoiceInformation> result = buildXmlDocument(document)
+            .flatMap(xml -> signXmlDocument(xml, generatorInformation.getApiInformation()))
+            .flatMap(file -> generateInvoice(file, invoiceGeneration.getEmail(), configuration, invoiceType));
+
+        return result
+            .getOrElseThrow(errors -> BusinessExceptionBuilder.createBusinessException(HttpStatus.UNPROCESSABLE_ENTITY, 
+                "No es posible generar DTE", errors));
     }
 
     // --------------------------------------------------------------------------------------------------------------
@@ -124,16 +132,19 @@ public class InvoiceService {
         }
     }
 
-    private Either<List<String>, InvoiceInformation> generateInvoice(String signedDocument,
-                                                                     String recipientEmail,
-                                                                     FelInformation felInformation) {
+    private Either<List<String>, InvoiceInformation> generateInvoice(final String signedDocument,
+                                                                     final String recipientEmail,
+                                                                     final FelInformation felInformation,
+                                                                     final InvoiceType invoiceType) {
         try {
 
-            RespuestaServicioFel respuestaServicioFel = inFileClient.certificateDocument(signedDocument, recipientEmail, felInformation);
+            final RespuestaServicioFel respuestaServicioFel = inFileClient.certificateDocument(signedDocument, 
+                recipientEmail, getGeneratorInformationByType(felInformation, invoiceType));
 
             if (respuestaServicioFel.getResultado()) {
 
                 InvoiceInformation invoiceInformation = InvoiceInformation.builder()
+                        .type(invoiceType.name())
                         .origin(respuestaServicioFel.getOrigen())
                         .description(respuestaServicioFel.getDescripcion())
                         .information(respuestaServicioFel.getInfo())
@@ -158,5 +169,13 @@ public class InvoiceService {
             LOGGER.error("can't generate invoice - ", exception);
             return Either.left(Collections.singletonList("can't generate invoice"));
         }
+    }
+
+    private GeneratorInformation getGeneratorInformationByType(final FelInformation felInformation, final InvoiceType invoiceType) {
+
+        final Generator generator = felInformation.getGenerator();
+
+        return  InvoiceType.BAR == invoiceType ? generator.getBarSubscription()
+            : generator.getRestaurantSubscription();
     }
 }

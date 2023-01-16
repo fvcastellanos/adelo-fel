@@ -14,6 +14,5 @@ public class FelInformation {
     private String exportation;
     private Integer accessNumber;
     private String person;   
-    private GeneratorInformation generator;
-    private ApiInformation apiInformation;
+    private Generator generator;
 }
